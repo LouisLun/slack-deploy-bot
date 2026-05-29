@@ -288,13 +288,7 @@ gcloud run deploy slack-deploy-bot \
   --min-instances 0 \
   --max-instances 3 \
   --concurrency 10 \
-  --set-env-vars \
-    SLACK_SIGNING_SECRET=..., \
-    SLACK_BOT_TOKEN=..., \
-    GITHUB_CLIENT_ID=..., \
-    GITHUB_CLIENT_SECRET=..., \
-    GCS_BUCKET_NAME=..., \
-    GCS_CONFIG_FILE_PATH=deploy-config.json
+  --set-env-vars "SLACK_SIGNING_SECRET=...,SLACK_BOT_TOKEN=...,GITHUB_CLIENT_ID=...,GITHUB_CLIENT_SECRET=...,GCS_BUCKET_NAME=...,GCS_CONFIG_FILE_PATH=deploy-config.json"
 ```
 
 > **Timeout**: Set to `3600` seconds. The browser OAuth callback returns immediately; the long-running workflow polling runs as a background async task within the same Cloud Run instance.
