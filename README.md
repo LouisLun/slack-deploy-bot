@@ -27,7 +27,8 @@ Step 3 — Add Cloud Run deploy workflow
      Place at .github/workflows/deploy-cloudrun.yml and push
 
 Step 4 — First Deploy (to obtain Cloud Run URL)
-  ├─ GitHub → Actions → Build and Push to Docker Hub → Run workflow
+  ├─ GitHub → Releases → Create a new release → Publish
+  │   (triggers Build and Push to Docker Hub automatically)
   └─ GitHub → Actions → Deploy to Cloud Run → Run workflow
      Note the URL: https://slack-deploy-bot-xxxx-xx.a.run.app
 
@@ -200,7 +201,8 @@ Configure these in **GitHub repo → Settings → Secrets and variables → Acti
 
 The deploy workflow pushes the image to Docker Hub as:
 ```
-<DOCKERHUB_USERNAME>/slack-deploy-bot:<sha>
+<DOCKERHUB_USERNAME>/slack-deploy-bot:<release-tag>
+<DOCKERHUB_USERNAME>/slack-deploy-bot:latest
 ```
 
 Secrets and variables are injected into Cloud Run as environment variables on every deploy.
@@ -270,9 +272,9 @@ Two separate workflows handle build and deploy:
 
 **Step 1 — Build and push image**
 
-Go to **GitHub → Actions → Build and Push to Docker Hub → Run workflow**.
+Go to **GitHub → Releases → Create a new release → Publish**.
 
-Builds the Docker image and pushes `<DOCKERHUB_USERNAME>/slack-deploy-bot:<sha>` and `:latest` to Docker Hub.
+This automatically triggers the `Build and Push to Docker Hub` workflow, which pushes `<DOCKERHUB_USERNAME>/slack-deploy-bot:<release-tag>` and `:latest` to Docker Hub.
 
 **Step 2 — Deploy to Cloud Run**
 
