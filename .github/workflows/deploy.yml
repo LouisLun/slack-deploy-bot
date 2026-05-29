@@ -6,7 +6,9 @@ on:
       - main
 
 env:
-  IMAGE: ${{ vars.AR_REPO }}/slack-deploy-bot
+  # Full Artifact Registry image path:
+  # <region>-docker.pkg.dev/<project>/<repository>/slack-deploy-bot
+  IMAGE: ${{ vars.AR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT }}/${{ vars.AR_REPOSITORY }}/slack-deploy-bot
 
 jobs:
   deploy:
@@ -35,7 +37,9 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ env.IMAGE }}:${{ github.sha }},${{ env.IMAGE }}:latest
+          tags: |
+            ${{ env.IMAGE }}:${{ github.sha }}
+            ${{ env.IMAGE }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
