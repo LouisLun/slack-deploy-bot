@@ -257,6 +257,18 @@ Go to **GitHub → Actions → Deploy to Cloud Run → Run workflow**.
 
 The workflow builds the Docker image, pushes it to Artifact Registry, and deploys to Cloud Run.
 
+After the first deploy, obtain the Cloud Run URL via:
+
+```bash
+gcloud run services describe slack-deploy-bot \
+  --region asia-east1 \
+  --format='value(status.url)'
+```
+
+Or from **GCP Console → Cloud Run → slack-deploy-bot → URL**.
+
+> The URL is permanent — it does not change between redeployments as long as the service name and region remain the same. Use this URL for the GitHub OAuth App callback and Slack slash command Request URLs.
+
 ### Manual deploy (without GitHub Actions)
 
 ```bash
