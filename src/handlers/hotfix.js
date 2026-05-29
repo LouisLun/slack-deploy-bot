@@ -43,7 +43,7 @@ async function runHotfix({ token, projectName, channelId }) {
     );
 
     // 1. Merge PR
-    const merged = await mergePR(gh, owner, repo, pr.number, `Hotfix ${version}`);
+    const merged = await mergePR(gh, owner, repo, pr.number, `Merge pull request #${pr.number} from ${pr.head.repo.owner.login}/${pr.head.ref}`);
     await postMessage(channelId, `[${projectName}] <${pr.html_url}|PR #${pr.number}> merged :merged:`);
 
     // 2. Create version tag on merge commit
