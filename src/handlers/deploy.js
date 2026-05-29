@@ -91,7 +91,7 @@ async function deployProject(gh, { project, pr, version, owner, repo }, channelI
       await postMessage(channelId, `[${project.name}] Triggering \`${workflow}\` on \`${branch}\``);
 
       const since = new Date(Date.now() - 2000);
-      await triggerWorkflow(gh, owner, repo, workflow, branch);
+      await triggerWorkflow(gh, owner, repo, workflow, branch, { version });
 
       const run = await waitForWorkflowRun(gh, owner, repo, workflow, branch, since);
 

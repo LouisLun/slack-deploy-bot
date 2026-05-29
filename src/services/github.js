@@ -67,10 +67,10 @@ async function getNextVersion(client, owner, repo) {
   }
 }
 
-async function triggerWorkflow(client, owner, repo, workflowFile, ref) {
+async function triggerWorkflow(client, owner, repo, workflowFile, ref, inputs = {}) {
   await client.post(
     `/repos/${owner}/${repo}/actions/workflows/${workflowFile}/dispatches`,
-    { ref }
+    { ref, inputs }
   );
 }
 

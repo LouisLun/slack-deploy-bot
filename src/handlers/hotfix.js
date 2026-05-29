@@ -46,7 +46,7 @@ async function runHotfix({ token, projectName, channelId }) {
         await postMessage(channelId, `[${projectName}] Triggering \`${workflow}\` on \`${branch}\``);
 
         const since = new Date(Date.now() - 2000);
-        await triggerWorkflow(gh, owner, repo, workflow, branch);
+        await triggerWorkflow(gh, owner, repo, workflow, branch, { version });
 
         const run = await waitForWorkflowRun(gh, owner, repo, workflow, branch, since);
 
