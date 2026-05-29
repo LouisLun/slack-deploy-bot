@@ -1,7 +1,8 @@
 name: Build and Push to Docker Hub
 
 on:
-  workflow_dispatch:
+  release:
+    types: [published]
 
 env:
   IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/slack-deploy-bot
@@ -30,7 +31,7 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ env.IMAGE }}:${{ github.sha }}
+            ${{ env.IMAGE }}:${{ github.ref_name }}
             ${{ env.IMAGE }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
