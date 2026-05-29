@@ -115,6 +115,13 @@ async function createRelease(client, owner, repo, tag, sha, body = '') {
   });
 }
 
+async function mergePR(client, owner, repo, pullNumber, commitTitle) {
+  await client.request('PUT', `/repos/${owner}/${repo}/pulls/${pullNumber}/merge`, {
+    commit_title: commitTitle,
+    merge_method: 'merge',
+  });
+}
+
 async function exchangeCodeForToken(code) {
   const res = await fetch('https://github.com/login/oauth/access_token', {
     method: 'POST',
@@ -140,5 +147,6 @@ module.exports = {
   triggerWorkflow,
   waitForWorkflowRun,
   createRelease,
+  mergePR,
   exchangeCodeForToken,
 };

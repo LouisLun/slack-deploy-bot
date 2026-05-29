@@ -5,6 +5,7 @@ const {
   triggerWorkflow,
   waitForWorkflowRun,
   createRelease,
+  mergePR,
 } = require('../services/github');
 const { readConfig } = require('../services/config');
 const { postMessage } = require('../services/slack');
@@ -114,6 +115,9 @@ async function deployProject(gh, { project, pr, version, owner, repo }, channelI
   );
 
   await postMessage(channelId, `[${project.name}] Release \`${version}\` created :label:`);
+
+  await mergePR(gh, owner, repo, pr.number, `Deploy ${version}`);
+  await postMessage(channelId, `[${project.name}] PR #${pr.number} merged :merged:`);
 }
 
 module.exports = { runDeploy };

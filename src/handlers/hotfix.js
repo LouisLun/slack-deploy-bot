@@ -5,6 +5,7 @@ const {
   triggerWorkflow,
   waitForWorkflowRun,
   createRelease,
+  mergePR,
 } = require('../services/github');
 const { readConfig } = require('../services/config');
 const { postMessage } = require('../services/slack');
@@ -66,9 +67,11 @@ async function runHotfix({ token, projectName, channelId }) {
       `Hotfix deployed via PR ${pr.html_url}`
     );
 
+    await mergePR(gh, owner, repo, pr.number, `Hotfix ${version}`);
+
     await postMessage(
       channelId,
-      `:tada: Hotfix complete! Release \`${version}\` created for *${projectName}*`
+      `:tada: Hotfix complete! Release \`${version}\` created and PR #${pr.number} merged for *${projectName}*`
     );
   } catch (err) {
     await postMessage(channelId, `:x: Hotfix failed for ${projectName}: ${err.message}`);
