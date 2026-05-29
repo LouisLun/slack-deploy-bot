@@ -4,6 +4,45 @@ A Node.js HTTP server deployed on Google Cloud Run that handles Slack Slash Comm
 
 ---
 
+## Setup Order
+
+> Cloud Run URL is required for both GitHub OAuth App and Slack slash command URLs. Do a first deploy with placeholder secrets to obtain the URL, then complete the remaining setup.
+
+```
+Step 1 — GCP Infrastructure
+  ├─ Enable required APIs (see Cloud Run Deployment → Prerequisites)
+  ├─ Create Artifact Registry repository
+  ├─ Create GCS bucket and upload deploy-config.json
+  └─ Set up Workload Identity Federation + Service Account (see Setting up WIF)
+
+Step 2 — GitHub Actions (infra vars only)
+  └─ Add repo Secrets: WIF_PROVIDER, WIF_SERVICE_ACCOUNT
+     Add repo Variables: GCP_PROJECT, AR_REGION, AR_REPOSITORY,
+                         CLOUD_RUN_SERVICE, GCS_BUCKET_NAME, GCS_CONFIG_FILE_PATH
+     (Leave app secrets empty for now)
+
+Step 3 — First Deploy (to obtain Cloud Run URL)
+  └─ GitHub → Actions → Deploy to Cloud Run → Run workflow
+     Note the URL: https://slack-deploy-bot-xxxx-xx.a.run.app
+
+Step 4 — GitHub OAuth App Setup
+  └─ Set callback URL: https://YOUR_CLOUD_RUN_URL/auth/github/callback
+     Obtain: GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET
+
+Step 5 — Slack App Setup  (see SLACK_SETUP.md)
+  └─ Set slash command Request URL: https://YOUR_CLOUD_RUN_URL/slack/{deploy,hotfix,deploy-config}
+     Obtain: SLACK_SIGNING_SECRET, SLACK_BOT_TOKEN
+
+Step 6 — Fill remaining GitHub Actions Secrets
+  └─ SLACK_SIGNING_SECRET, SLACK_BOT_TOKEN,
+     GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET
+
+Step 7 — Redeploy to apply all environment variables
+  └─ GitHub → Actions → Deploy to Cloud Run → Run workflow
+```
+
+---
+
 ## Environment Variables
 
 | Variable | Description |
