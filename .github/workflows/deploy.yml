@@ -49,10 +49,9 @@ jobs:
           image: ${{ env.IMAGE }}:${{ github.sha }}
           flags: --timeout=3600
           env_vars: |
+            SLACK_SIGNING_SECRET=${{ secrets.SLACK_SIGNING_SECRET }}
+            SLACK_BOT_TOKEN=${{ secrets.SLACK_BOT_TOKEN }}
+            GITHUB_CLIENT_ID=${{ secrets.GITHUB_CLIENT_ID }}
+            GITHUB_CLIENT_SECRET=${{ secrets.GITHUB_CLIENT_SECRET }}
             GCS_BUCKET_NAME=${{ vars.GCS_BUCKET_NAME }}
             GCS_CONFIG_FILE_PATH=${{ vars.GCS_CONFIG_FILE_PATH }}
-          secrets: |
-            SLACK_SIGNING_SECRET=SLACK_SIGNING_SECRET:latest
-            SLACK_BOT_TOKEN=SLACK_BOT_TOKEN:latest
-            GITHUB_CLIENT_ID=GITHUB_CLIENT_ID:latest
-            GITHUB_CLIENT_SECRET=GITHUB_CLIENT_SECRET:latest
