@@ -118,6 +118,10 @@ Configure these in **GitHub repo → Settings → Secrets and variables → Acti
 |---|---|
 | `WIF_PROVIDER` | Workload Identity Federation provider resource name<br>`projects/<project-number>/locations/global/workloadIdentityPools/<pool>/providers/<provider>` |
 | `WIF_SERVICE_ACCOUNT` | Service account email used for deployment<br>`deploy-bot@<project-id>.iam.gserviceaccount.com` |
+| `SLACK_SIGNING_SECRET` | Slack App signing secret |
+| `SLACK_BOT_TOKEN` | Slack Bot User OAuth Token (`xoxb-…`) |
+| `GITHUB_CLIENT_ID` | GitHub OAuth App client ID |
+| `GITHUB_CLIENT_SECRET` | GitHub OAuth App client secret |
 
 ### Variables (vars)
 
@@ -127,11 +131,15 @@ Configure these in **GitHub repo → Settings → Secrets and variables → Acti
 | `AR_REGION` | `asia-east1` | Artifact Registry and Cloud Run region |
 | `AR_REPOSITORY` | `slack-deploy-bot` | Artifact Registry Docker repository name |
 | `CLOUD_RUN_SERVICE` | `slack-deploy-bot` | Cloud Run service name |
+| `GCS_BUCKET_NAME` | `my-bucket` | GCS bucket storing the deploy config |
+| `GCS_CONFIG_FILE_PATH` | `deploy-config.json` | Config file path inside the bucket |
 
 The deploy workflow constructs the image path as:
 ```
 <AR_REGION>-docker.pkg.dev/<GCP_PROJECT>/<AR_REPOSITORY>/slack-deploy-bot
 ```
+
+Secrets and variables are injected into Cloud Run as environment variables on every deploy.
 
 ### Setting up Workload Identity Federation
 
