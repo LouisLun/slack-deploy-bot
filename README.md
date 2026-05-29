@@ -11,8 +11,8 @@ A Node.js HTTP server deployed on Google Cloud Run that handles Slack Slash Comm
 ```
 Step 1 — GCP Infrastructure
   ├─ Enable required APIs (see Cloud Run Deployment → Prerequisites)
-  ├─ Create GCS bucket and upload deploy-config.json
-  └─ Set up Workload Identity Federation + Service Account (see Setting up WIF)
+  ├─ Set up Workload Identity Federation + Service Account (see Setting up WIF)
+  └─ (GCS provider only) Create GCS bucket and upload deploy-config.json
 
 Step 2 — GitHub Actions (infra vars only)
   └─ Add repo Secrets: WIF_PROVIDER, WIF_SERVICE_ACCOUNT,
@@ -201,8 +201,8 @@ Configure these in **GitHub repo → Settings → Secrets and variables → Acti
 
 The deploy workflow pushes the image to Docker Hub as:
 ```
-<DOCKERHUB_USERNAME>/slack-deploy-bot:<release-tag>
-<DOCKERHUB_USERNAME>/slack-deploy-bot:latest
+<DOCKERHUB_USERNAME>/slack-deploy-bot:<release-tag>          # always
+<DOCKERHUB_USERNAME>/slack-deploy-bot:latest                 # only when release is the latest non-prerelease
 ```
 
 Secrets and variables are injected into Cloud Run as environment variables on every deploy.
