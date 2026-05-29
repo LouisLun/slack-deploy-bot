@@ -63,6 +63,24 @@ Step 8 — Redeploy to apply all environment variables
 
 ---
 
+## Config Providers
+
+The app reads the deploy config on every request. Two providers are supported — set one:
+
+| Provider | Env Var | When to Use |
+|---|---|---|
+| Inline JSON | `DEPLOY_CONFIG_JSON` | Simpler setup; config stored as a GitHub secret |
+| GCS | `GCS_BUCKET_NAME` + `GCS_CONFIG_FILE_PATH` | Config managed outside the repo; easier to update without redeploying |
+
+`DEPLOY_CONFIG_JSON` takes priority. If set, GCS vars are ignored.
+
+**Inline JSON example** (`DEPLOY_CONFIG_JSON` secret value):
+```json
+{"groups":{"production":[{"step":1,"projects":[{"name":"restful","repo":"myorg/restful","workflows":["release-cd.yml"]}]}]},"projects":{"restful":{"repo":"myorg/restful","workflows":["release-cd.yml"]}}}
+```
+
+---
+
 ## GCS Config File Format
 
 The config file is JSON stored in GCS. It is read fresh on every request; no caching.
@@ -164,6 +182,7 @@ Configure these in **GitHub repo → Settings → Secrets and variables → Acti
 | `WIF_SERVICE_ACCOUNT` | Service account email used for deployment<br>`deploy-bot@<project-id>.iam.gserviceaccount.com` |
 | `DOCKERHUB_USERNAME` | Docker Hub username |
 | `DOCKERHUB_TOKEN` | Docker Hub access token (Settings → Security → Access Tokens) |
+| `DEPLOY_CONFIG_JSON` | (optional) Full deploy config JSON string — overrides GCS when set |
 | `SLACK_SIGNING_SECRET` | Slack App signing secret |
 | `SLACK_BOT_TOKEN` | Slack Bot User OAuth Token (`xoxb-…`) |
 | `GITHUB_CLIENT_ID` | GitHub OAuth App client ID |
