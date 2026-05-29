@@ -17,7 +17,7 @@ function buildOAuthUrl(stateKey) {
 
 router.post('/deploy', (req, res) => {
   const { text, channel_id, user_id } = req.body;
-  const groupName = (text || '').trim();
+  const groupName = (text || '').trim().replace(/`/g, '');
 
   if (!groupName) {
     return res.json({ response_type: 'ephemeral', text: 'Usage: `/deploy <group-name>`' });
@@ -34,7 +34,7 @@ router.post('/deploy', (req, res) => {
 
 router.post('/hotfix', (req, res) => {
   const { text, channel_id, user_id } = req.body;
-  const projectName = (text || '').trim();
+  const projectName = (text || '').trim().replace(/`/g, '');
 
   if (!projectName) {
     return res.json({ response_type: 'ephemeral', text: 'Usage: `/hotfix <project-name>`' });

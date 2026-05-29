@@ -9,7 +9,7 @@ async function handleDeployConfig(subcommand) {
 
   const lines = ['*Groups:*'];
   for (const [groupName, steps] of Object.entries(config.groups || {})) {
-    lines.push(`\n*${groupName}*`);
+    lines.push(`\n*\`${groupName}\`*`);
     for (const { step, projects } of steps) {
       const names = projects.map((p) => `${p.name} (${p.repo})`).join(', ');
       lines.push(`  Step ${step}: ${names}`);
