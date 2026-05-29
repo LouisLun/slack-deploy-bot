@@ -105,19 +105,19 @@ async function deployProject(gh, { project, pr, version, owner, repo }, channelI
     })
   );
 
+  const merged = await mergePR(gh, owner, repo, pr.number, `Deploy ${version}`);
+  await postMessage(channelId, `[${project.name}] PR #${pr.number} merged :merged:`);
+
   await createRelease(
     gh,
     owner,
     repo,
     version,
-    pr.head.sha,
+    merged.sha,
     `Deployed via PR ${pr.html_url}`
   );
 
   await postMessage(channelId, `[${project.name}] Release \`${version}\` created :label:`);
-
-  await mergePR(gh, owner, repo, pr.number, `Deploy ${version}`);
-  await postMessage(channelId, `[${project.name}] PR #${pr.number} merged :merged:`);
 }
 
 module.exports = { runDeploy };

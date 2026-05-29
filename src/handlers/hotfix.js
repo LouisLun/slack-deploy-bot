@@ -58,20 +58,20 @@ async function runHotfix({ token, projectName, channelId }) {
       })
     );
 
+    const merged = await mergePR(gh, owner, repo, pr.number, `Hotfix ${version}`);
+
     await createRelease(
       gh,
       owner,
       repo,
       version,
-      pr.head.sha,
+      merged.sha,
       `Hotfix deployed via PR ${pr.html_url}`
     );
 
-    await mergePR(gh, owner, repo, pr.number, `Hotfix ${version}`);
-
     await postMessage(
       channelId,
-      `:tada: Hotfix complete! Release \`${version}\` created and PR #${pr.number} merged for *${projectName}*`
+      `:tada: Hotfix complete! PR #${pr.number} merged and release \`${version}\` created for *${projectName}*`
     );
   } catch (err) {
     await postMessage(channelId, `:x: Hotfix failed for ${projectName}: ${err.message}`);

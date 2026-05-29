@@ -116,7 +116,7 @@ async function createRelease(client, owner, repo, tag, sha, body = '') {
 }
 
 async function mergePR(client, owner, repo, pullNumber, commitTitle) {
-  await client.request('PUT', `/repos/${owner}/${repo}/pulls/${pullNumber}/merge`, {
+  return client.request('PUT', `/repos/${owner}/${repo}/pulls/${pullNumber}/merge`, {
     commit_title: commitTitle,
     merge_method: 'merge',
   });
