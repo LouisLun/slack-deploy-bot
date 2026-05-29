@@ -122,6 +122,10 @@ async function createTag(client, owner, repo, tag, sha) {
   });
 }
 
+async function deleteTag(client, owner, repo, tag) {
+  await client.request('DELETE', `/repos/${owner}/${repo}/git/refs/tags/${tag}`);
+}
+
 async function mergePR(client, owner, repo, pullNumber, commitTitle) {
   return client.request('PUT', `/repos/${owner}/${repo}/pulls/${pullNumber}/merge`, {
     commit_title: commitTitle,
@@ -155,6 +159,7 @@ module.exports = {
   waitForWorkflowRun,
   createRelease,
   createTag,
+  deleteTag,
   mergePR,
   exchangeCodeForToken,
 };

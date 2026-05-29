@@ -139,7 +139,8 @@ The config file is JSON stored in GCS. It is read fresh on every request; no cac
 - Projects **within the same step** are triggered in parallel.
 - Per project: merge PR → create version tag on merge commit → trigger all workflows in parallel on that tag → wait for all to complete → create GitHub Release.
 - Workflows are triggered via `workflow_dispatch` with the version tag as ref (visible in GitHub Actions UI).
-- A failed workflow aborts the release for that project and blocks the next step.
+- Each workflow completion message includes a direct link to the GitHub Actions run.
+- A failed workflow deletes the version tag and aborts the release for that project, blocking the next step.
 - Projects with no open PR labelled `production` (case-insensitive) are **skipped** and reported in Slack.
 
 ---
@@ -155,7 +156,8 @@ The config file is JSON stored in GCS. It is read fresh on every request; no cac
 3. Merges the PR.
 4. Creates a version tag on the merge commit.
 5. Triggers all of that project's workflows in parallel on the version tag, waits for all to complete.
-6. Creates a GitHub Release.
+6. On failure: deletes the version tag and reports the GitHub Actions run link in Slack.
+7. On success: creates a GitHub Release.
 
 Example:
 ```

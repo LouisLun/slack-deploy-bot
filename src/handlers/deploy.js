@@ -6,6 +6,7 @@ const {
   waitForWorkflowRun,
   createRelease,
   createTag,
+  deleteTag,
   mergePR,
 } = require('../services/github');
 const { readConfig } = require('../services/config');
@@ -93,37 +94,43 @@ async function deployProject(gh, { project, pr, version, owner, repo }, channelI
   await createTag(gh, owner, repo, version, merged.sha);
   await postMessage(channelId, `[${project.name}] Tag \`${version}\` created`);
 
-  // 3. Trigger workflows on the version tag
-  await Promise.all(
-    project.workflows.map(async (workflow) => {
-      await postMessage(channelId, `[${project.name}] Triggering \`${workflow}\` on \`${version}\``);
+  try {
+    // 3. Trigger workflows on the version tag
+    await Promise.all(
+      project.workflows.map(async (workflow) => {
+        await postMessage(channelId, `[${project.name}] Triggering \`${workflow}\` on \`${version}\``);
 
-      const since = new Date(Date.now() - 2000);
-      await triggerWorkflow(gh, owner, repo, workflow, version);
+        const since = new Date(Date.now() - 2000);
+        await triggerWorkflow(gh, owner, repo, workflow, version);
 
-      const run = await waitForWorkflowRun(gh, owner, repo, workflow, version, since);
+        const run = await waitForWorkflowRun(gh, owner, repo, workflow, version, since);
 
-      if (run.conclusion !== 'success') {
-        throw new Error(
-          `[${project.name}] ${workflow} finished with conclusion \`${run.conclusion}\``
-        );
-      }
+        if (run.conclusion !== 'success') {
+          throw new Error(
+            `[${project.name}] ${workflow} failed (\`${run.conclusion}\`) — <${run.html_url}|View run>`
+          );
+        }
 
-      await postMessage(channelId, `[${project.name}] \`${workflow}\` :white_check_mark:`);
-    })
-  );
+        await postMessage(channelId, `[${project.name}] \`${workflow}\` :white_check_mark: <${run.html_url}|View run>`);
+      })
+    );
 
-  // 4. Create GitHub Release
-  await createRelease(
-    gh,
-    owner,
-    repo,
-    version,
-    merged.sha,
-    `Deployed via PR ${pr.html_url}`
-  );
+    // 4. Create GitHub Release
+    await createRelease(
+      gh,
+      owner,
+      repo,
+      version,
+      merged.sha,
+      `Deployed via PR ${pr.html_url}`
+    );
 
-  await postMessage(channelId, `[${project.name}] Release \`${version}\` created :label:`);
+    await postMessage(channelId, `[${project.name}] Release \`${version}\` created :label:`);
+  } catch (err) {
+    await deleteTag(gh, owner, repo, version).catch(() => {});
+    await postMessage(channelId, `[${project.name}] Tag \`${version}\` deleted after failure`);
+    throw err;
+  }
 }
 
 module.exports = { runDeploy };
