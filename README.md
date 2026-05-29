@@ -23,33 +23,39 @@ Each organization gets a fully independent repo with no link back to this templa
 ```
 Step 1 — GCP Infrastructure
   ├─ Enable required APIs (see Cloud Run Deployment → Prerequisites)
-  ├─ Create Artifact Registry repository
   ├─ Create GCS bucket and upload deploy-config.json
   └─ Set up Workload Identity Federation + Service Account (see Setting up WIF)
 
 Step 2 — GitHub Actions (infra vars only)
-  └─ Add repo Secrets: WIF_PROVIDER, WIF_SERVICE_ACCOUNT
-     Add repo Variables: GCP_PROJECT, AR_REGION, AR_REPOSITORY,
+  └─ Add repo Secrets: WIF_PROVIDER, WIF_SERVICE_ACCOUNT,
+                       DOCKERHUB_USERNAME, DOCKERHUB_TOKEN
+     Add repo Variables: GCP_PROJECT, GCP_REGION,
                          CLOUD_RUN_SERVICE, GCS_BUCKET_NAME, GCS_CONFIG_FILE_PATH
      (Leave app secrets empty for now)
 
-Step 3 — First Deploy (to obtain Cloud Run URL)
+Step 3 — Activate Cloud Run deploy workflow
+  └─ cp .github/workflows/deploy-cloudrun.yml.example \
+        .github/workflows/deploy-cloudrun.yml
+     git add . && git commit -m "ci: add Cloud Run deploy workflow" && git push
+
+Step 4 — First Deploy (to obtain Cloud Run URL)
+  ├─ GitHub → Actions → Build and Push to Docker Hub → Run workflow
   └─ GitHub → Actions → Deploy to Cloud Run → Run workflow
      Note the URL: https://slack-deploy-bot-xxxx-xx.a.run.app
 
-Step 4 — GitHub OAuth App Setup
+Step 5 — GitHub OAuth App Setup
   └─ Set callback URL: https://YOUR_CLOUD_RUN_URL/auth/github/callback
      Obtain: GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET
 
-Step 5 — Slack App Setup  (see SLACK_SETUP.md)
+Step 6 — Slack App Setup  (see SLACK_SETUP.md)
   └─ Set slash command Request URL: https://YOUR_CLOUD_RUN_URL/slack/{deploy,hotfix,deploy-config}
      Obtain: SLACK_SIGNING_SECRET, SLACK_BOT_TOKEN
 
-Step 6 — Fill remaining GitHub Actions Secrets
+Step 7 — Fill remaining GitHub Actions Secrets
   └─ SLACK_SIGNING_SECRET, SLACK_BOT_TOKEN,
      GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET
 
-Step 7 — Redeploy to apply all environment variables
+Step 8 — Redeploy to apply all environment variables
   └─ GitHub → Actions → Deploy to Cloud Run → Run workflow
 ```
 
