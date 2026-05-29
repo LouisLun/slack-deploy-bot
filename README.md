@@ -253,9 +253,28 @@ gcloud services enable \
 
 ### Deploy via GitHub Actions
 
-Go to **GitHub → Actions → Deploy to Cloud Run → Run workflow**.
+Two separate workflows handle build and deploy:
 
-The workflow builds the Docker image, pushes it to Artifact Registry, and deploys to Cloud Run.
+**Step 1 — Build and push image**
+
+Go to **GitHub → Actions → Build and Push to Docker Hub → Run workflow**.
+
+Builds the Docker image and pushes `<DOCKERHUB_USERNAME>/slack-deploy-bot:<sha>` and `:latest` to Docker Hub.
+
+**Step 2 — Deploy to Cloud Run**
+
+A `.github/workflows/deploy-cloudrun.yml.example` is included as a starting point. To activate it:
+
+```bash
+cp .github/workflows/deploy-cloudrun.yml.example .github/workflows/deploy-cloudrun.yml
+git add .github/workflows/deploy-cloudrun.yml
+git commit -m "ci: add Cloud Run deploy workflow"
+git push
+```
+
+Then go to **GitHub → Actions → Deploy to Cloud Run → Run workflow**.
+
+You can optionally specify an image tag to deploy (defaults to `latest`).
 
 After the first deploy, obtain the Cloud Run URL via:
 
