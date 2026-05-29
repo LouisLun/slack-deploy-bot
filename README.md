@@ -273,6 +273,9 @@ gcloud run deploy slack-deploy-bot \
   --region $REGION \
   --allow-unauthenticated \
   --timeout 3600 \
+  --min-instances 0 \
+  --max-instances 3 \
+  --concurrency 10 \
   --set-env-vars \
     SLACK_SIGNING_SECRET=..., \
     SLACK_BOT_TOKEN=..., \
@@ -283,6 +286,8 @@ gcloud run deploy slack-deploy-bot \
 ```
 
 > **Timeout**: Set to `3600` seconds. The browser OAuth callback returns immediately; the long-running workflow polling runs as a background async task within the same Cloud Run instance.
+>
+> **Scaling**: `--min-instances=0` means no idle cost when the bot is not in use. `--max-instances=3` caps scaling, `--concurrency=10` limits concurrent requests per instance.
 
 ### Service Account Permissions (Cloud Run runtime)
 
