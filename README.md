@@ -63,8 +63,10 @@ The config file is JSON stored in GCS. It is read fresh on every request; no cac
 /deploy production
   │
   ├─ Step 1 (concurrent)
-  │   ├─ restful:  release-cd.yml ──► wait ──► release
-  │   ├─ wms:      release-cd.yml ──► wait ──► notify.yml ──► wait ──► release
+  │   ├─ restful:  release-cd.yml ──► wait ──┐
+  │   │                                      ├─► release
+  │   ├─ wms:      release-cd.yml ──► wait ──┤
+  │   │            notify.yml    ──► wait ──┘
   │   └─ console:  release-cd.yml ──► wait ──► release
   │
   └─ Step 2 (starts only after Step 1 fully completes)
@@ -72,8 +74,8 @@ The config file is JSON stored in GCS. It is read fresh on every request; no cac
 ```
 
 - Projects **within the same step** are triggered in parallel.
-- Workflows **within the same project** run sequentially (next starts only after previous completes successfully).
-- A failed workflow aborts remaining workflows for that project and blocks the next step.
+- Workflows **within the same project** are also triggered in parallel (all fire simultaneously, wait for all to complete).
+- A failed workflow aborts the release for that project and blocks the next step.
 - Projects with no open PR labelled `production` (case-insensitive) are **skipped** and reported in Slack.
 
 ---
@@ -86,7 +88,7 @@ The config file is JSON stored in GCS. It is read fresh on every request; no cac
 
 1. Looks up `<project-name>` in `config.projects`.
 2. Finds the most recently updated open PR labelled `hotfix` (case-insensitive).
-3. Runs that project's workflows sequentially.
+3. Triggers all of that project's workflows in parallel, waits for all to complete.
 4. Creates a GitHub Release on success.
 
 Example:

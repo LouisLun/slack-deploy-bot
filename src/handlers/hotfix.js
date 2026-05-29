@@ -40,24 +40,22 @@ async function runHotfix({ token, projectName, channelId }) {
       `:fire: Starting hotfix for *${projectName}* → \`${version}\` (PR: ${pr.html_url})`
     );
 
-    for (const workflow of projectConfig.workflows) {
-      await postMessage(channelId, `[${projectName}] Triggering \`${workflow}\` on \`${branch}\``);
+    await Promise.all(
+      projectConfig.workflows.map(async (workflow) => {
+        await postMessage(channelId, `[${projectName}] Triggering \`${workflow}\` on \`${branch}\``);
 
-      const since = new Date(Date.now() - 2000);
-      await triggerWorkflow(gh, owner, repo, workflow, branch);
+        const since = new Date(Date.now() - 2000);
+        await triggerWorkflow(gh, owner, repo, workflow, branch);
 
-      const run = await waitForWorkflowRun(gh, owner, repo, workflow, branch, since);
+        const run = await waitForWorkflowRun(gh, owner, repo, workflow, branch, since);
 
-      if (run.conclusion !== 'success') {
-        await postMessage(
-          channelId,
-          `:x: [${projectName}] \`${workflow}\` failed (conclusion: \`${run.conclusion}\`). Aborting.`
-        );
-        return;
-      }
+        if (run.conclusion !== 'success') {
+          throw new Error(`\`${workflow}\` failed (conclusion: \`${run.conclusion}\`)`);
+        }
 
-      await postMessage(channelId, `[${projectName}] \`${workflow}\` :white_check_mark:`);
-    }
+        await postMessage(channelId, `[${projectName}] \`${workflow}\` :white_check_mark:`);
+      })
+    );
 
     await createRelease(
       gh,

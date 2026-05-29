@@ -85,23 +85,24 @@ async function runDeploy({ token, groupName, channelId }) {
 async function deployProject(gh, { project, pr, version, owner, repo }, channelId) {
   const branch = pr.head.ref;
 
-  for (const workflow of project.workflows) {
-    await postMessage(channelId, `[${project.name}] Triggering \`${workflow}\` on \`${branch}\``);
+  await Promise.all(
+    project.workflows.map(async (workflow) => {
+      await postMessage(channelId, `[${project.name}] Triggering \`${workflow}\` on \`${branch}\``);
 
-    // Record time immediately before dispatch so we can identify this specific run
-    const since = new Date(Date.now() - 2000);
-    await triggerWorkflow(gh, owner, repo, workflow, branch);
+      const since = new Date(Date.now() - 2000);
+      await triggerWorkflow(gh, owner, repo, workflow, branch);
 
-    const run = await waitForWorkflowRun(gh, owner, repo, workflow, branch, since);
+      const run = await waitForWorkflowRun(gh, owner, repo, workflow, branch, since);
 
-    if (run.conclusion !== 'success') {
-      throw new Error(
-        `[${project.name}] ${workflow} finished with conclusion \`${run.conclusion}\``
-      );
-    }
+      if (run.conclusion !== 'success') {
+        throw new Error(
+          `[${project.name}] ${workflow} finished with conclusion \`${run.conclusion}\``
+        );
+      }
 
-    await postMessage(channelId, `[${project.name}] \`${workflow}\` :white_check_mark:`);
-  }
+      await postMessage(channelId, `[${project.name}] \`${workflow}\` :white_check_mark:`);
+    })
+  );
 
   await createRelease(
     gh,
