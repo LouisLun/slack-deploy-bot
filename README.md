@@ -106,29 +106,123 @@ Each project's version is computed independently:
 
 ---
 
+## GitHub Actions Secrets & Variables
+
+Configure these in **GitHub repo → Settings → Secrets and variables → Actions**.
+
+### Secrets
+
+| Name | Description |
+|---|---|
+| `WIF_PROVIDER` | Workload Identity Federation provider resource name<br>`projects/<project-number>/locations/global/workloadIdentityPools/<pool>/providers/<provider>` |
+| `WIF_SERVICE_ACCOUNT` | Service account email used for deployment<br>`deploy-bot@<project-id>.iam.gserviceaccount.com` |
+
+### Variables (vars)
+
+| Name | Example | Description |
+|---|---|---|
+| `GCP_PROJECT` | `my-project-id` | GCP project ID |
+| `AR_REGION` | `asia-east1` | Artifact Registry and Cloud Run region |
+| `AR_REPOSITORY` | `slack-deploy-bot` | Artifact Registry Docker repository name |
+| `CLOUD_RUN_SERVICE` | `slack-deploy-bot` | Cloud Run service name |
+
+The deploy workflow constructs the image path as:
+```
+<AR_REGION>-docker.pkg.dev/<GCP_PROJECT>/<AR_REPOSITORY>/slack-deploy-bot
+```
+
+### Setting up Workload Identity Federation
+
+```bash
+PROJECT_ID=my-project-id
+PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format='value(projectNumber)')
+POOL=github-pool
+PROVIDER=github-provider
+SA=deploy-bot
+
+# Create service account
+gcloud iam service-accounts create $SA --project=$PROJECT_ID
+
+# Grant roles needed by the SA
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:$SA@$PROJECT_ID.iam.gserviceaccount.com" \
+  --role="roles/run.admin"
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:$SA@$PROJECT_ID.iam.gserviceaccount.com" \
+  --role="roles/artifactregistry.writer"
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:$SA@$PROJECT_ID.iam.gserviceaccount.com" \
+  --role="roles/iam.serviceAccountUser"
+
+# Create Workload Identity Pool
+gcloud iam workload-identity-pools create $POOL \
+  --location=global \
+  --project=$PROJECT_ID
+
+# Create provider (restrict to your repo)
+gcloud iam workload-identity-pools providers create-oidc $PROVIDER \
+  --location=global \
+  --workload-identity-pool=$POOL \
+  --issuer-uri="https://token.actions.githubusercontent.com" \
+  --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository" \
+  --attribute-condition="assertion.repository=='<YOUR_GITHUB_ORG>/slack-deploy-bot'" \
+  --project=$PROJECT_ID
+
+# Allow GitHub Actions to impersonate the SA
+gcloud iam service-accounts add-iam-policy-binding \
+  $SA@$PROJECT_ID.iam.gserviceaccount.com \
+  --role="roles/iam.workloadIdentityUser" \
+  --member="principalSet://iam.googleapis.com/projects/$PROJECT_NUMBER/locations/global/workloadIdentityPools/$POOL/attribute.repository/<YOUR_GITHUB_ORG>/slack-deploy-bot" \
+  --project=$PROJECT_ID
+
+# Print values to put in GitHub Secrets
+echo "WIF_PROVIDER: projects/$PROJECT_NUMBER/locations/global/workloadIdentityPools/$POOL/providers/$PROVIDER"
+echo "WIF_SERVICE_ACCOUNT: $SA@$PROJECT_ID.iam.gserviceaccount.com"
+```
+
+### Creating the Artifact Registry repository
+
+```bash
+gcloud artifacts repositories create slack-deploy-bot \
+  --repository-format=docker \
+  --location=asia-east1 \
+  --project=$PROJECT_ID
+```
+
+---
+
 ## Cloud Run Deployment
 
 ### Prerequisites
 
 ```bash
-gcloud services enable run.googleapis.com cloudbuild.googleapis.com storage.googleapis.com
+gcloud services enable \
+  run.googleapis.com \
+  artifactregistry.googleapis.com \
+  storage.googleapis.com \
+  iamcredentials.googleapis.com
 ```
 
-### Build and deploy
+### Deploy via GitHub Actions
+
+Go to **GitHub → Actions → Deploy to Cloud Run → Run workflow**.
+
+The workflow builds the Docker image, pushes it to Artifact Registry, and deploys to Cloud Run.
+
+### Manual deploy (without GitHub Actions)
 
 ```bash
-PROJECT_ID=$(gcloud config get-value project)
-IMAGE=gcr.io/$PROJECT_ID/slack-deploy-bot
+PROJECT_ID=my-project-id
+REGION=asia-east1
+IMAGE=$REGION-docker.pkg.dev/$PROJECT_ID/slack-deploy-bot/slack-deploy-bot
 
-# Build
 docker build -t $IMAGE .
 docker push $IMAGE
 
-# Deploy
 gcloud run deploy slack-deploy-bot \
   --image $IMAGE \
   --platform managed \
-  --region asia-east1 \
+  --region $REGION \
   --allow-unauthenticated \
   --timeout 3600 \
   --set-env-vars \
@@ -140,14 +234,13 @@ gcloud run deploy slack-deploy-bot \
     GCS_CONFIG_FILE_PATH=deploy-config.json
 ```
 
-> **Timeout**: Set to `3600` seconds. Deploying across multiple steps with slow workflows can take a long time. The browser callback returns immediately; the long-running work runs as a background async task within the same Cloud Run instance.
+> **Timeout**: Set to `3600` seconds. The browser OAuth callback returns immediately; the long-running workflow polling runs as a background async task within the same Cloud Run instance.
 
-### Service Account Permissions
+### Service Account Permissions (Cloud Run runtime)
 
-The Cloud Run service account needs:
+The Cloud Run service account needs read access to the GCS config bucket:
 
 ```bash
-# Read GCS config
 gsutil iam ch serviceAccount:SA_EMAIL:objectViewer gs://YOUR_BUCKET
 ```
 
