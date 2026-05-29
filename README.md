@@ -4,18 +4,6 @@ A Node.js HTTP server deployed on Google Cloud Run that handles Slack Slash Comm
 
 ---
 
-## Using This Template
-
-This repository is a [GitHub Template](https://github.com/LouisLun/slack-deploy-bot). To use it for your own organization:
-
-1. Click **Use this template** → **Create a new repository**
-2. Select owner, name the repo, set visibility
-3. Follow the Setup Order below in your new repo
-
-Each organization gets a fully independent repo with no link back to this template.
-
----
-
 ## Setup Order
 
 > Cloud Run URL is required for both GitHub OAuth App and Slack slash command URLs. Do a first deploy with placeholder secrets to obtain the URL, then complete the remaining setup.
@@ -33,10 +21,10 @@ Step 2 — GitHub Actions (infra vars only)
                          CLOUD_RUN_SERVICE, GCS_BUCKET_NAME, GCS_CONFIG_FILE_PATH
      (Leave app secrets empty for now)
 
-Step 3 — Activate Cloud Run deploy workflow
-  └─ cp .github/workflows/deploy-cloudrun.yml.example \
-        .github/workflows/deploy-cloudrun.yml
-     git add . && git commit -m "ci: add Cloud Run deploy workflow" && git push
+Step 3 — Add Cloud Run deploy workflow
+  └─ Copy deploy-cloudrun.yml from slack-deploy-bot-example repo:
+     https://github.com/LouisLun/slack-deploy-bot-example
+     Place at .github/workflows/deploy-cloudrun.yml and push
 
 Step 4 — First Deploy (to obtain Cloud Run URL)
   ├─ GitHub → Actions → Build and Push to Docker Hub → Run workflow
@@ -269,16 +257,7 @@ Builds the Docker image and pushes `<DOCKERHUB_USERNAME>/slack-deploy-bot:<sha>`
 
 **Step 2 — Deploy to Cloud Run**
 
-A `.github/workflows/deploy-cloudrun.yml.example` is included as a starting point. To activate it:
-
-```bash
-cp .github/workflows/deploy-cloudrun.yml.example .github/workflows/deploy-cloudrun.yml
-git add .github/workflows/deploy-cloudrun.yml
-git commit -m "ci: add Cloud Run deploy workflow"
-git push
-```
-
-Then go to **GitHub → Actions → Deploy to Cloud Run → Run workflow**.
+Copy `deploy-cloudrun.yml` from [slack-deploy-bot-example](https://github.com/LouisLun/slack-deploy-bot-example) into `.github/workflows/` and push. Then go to **GitHub → Actions → Deploy to Cloud Run → Run workflow**.
 
 You can optionally specify an image tag to deploy (defaults to `latest`).
 
