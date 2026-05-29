@@ -127,19 +127,19 @@ The config file is JSON stored in GCS. It is read fresh on every request; no cac
 /deploy production
   │
   ├─ Step 1 (all projects concurrent)
-  │   ├─ restful:  release-cd.yml ──► wait ──► merge PR ──► release
-  │   ├─ wms:      release-cd.yml ──► wait ──┐
-  │   │            notify.yml     ──► wait ──┴─► merge PR ──► release
-  │   └─ console:  release-cd.yml ──► wait ──► merge PR ──► release
+  │   ├─ restful:  merge PR ──► tag v1.0.1 ──► release-cd.yml ──► wait ──► release
+  │   ├─ wms:      merge PR ──► tag v1.0.1 ──► release-cd.yml ──► wait ──┐
+  │   │                                        notify.yml     ──► wait ──┴─► release
+  │   └─ console:  merge PR ──► tag v1.0.1 ──► release-cd.yml ──► wait ──► release
   │
   └─ Step 2 (starts only after Step 1 fully completes)
-      └─ website:  release-cd.yml ──► wait ──► merge PR ──► release
+      └─ website:  merge PR ──► tag v1.0.1 ──► release-cd.yml ──► wait ──► release
 ```
 
 - Projects **within the same step** are triggered in parallel.
-- Workflows **within the same project** are also triggered in parallel (all fire simultaneously, wait for all to complete).
-- After all workflows succeed: PR is merged, then a GitHub Release is created pointing to the merge commit.
-- A failed workflow aborts the merge and release for that project and blocks the next step.
+- Per project: merge PR → create version tag on merge commit → trigger all workflows in parallel on that tag → wait for all to complete → create GitHub Release.
+- Workflows are triggered via `workflow_dispatch` with the version tag as ref (visible in GitHub Actions UI).
+- A failed workflow aborts the release for that project and blocks the next step.
 - Projects with no open PR labelled `production` (case-insensitive) are **skipped** and reported in Slack.
 
 ---
@@ -152,9 +152,10 @@ The config file is JSON stored in GCS. It is read fresh on every request; no cac
 
 1. Looks up `<project-name>` in `config.projects`.
 2. Finds the most recently updated open PR labelled `hotfix` (case-insensitive).
-3. Triggers all of that project's workflows in parallel, waits for all to complete.
-4. Merges the PR.
-5. Creates a GitHub Release pointing to the merge commit.
+3. Merges the PR.
+4. Creates a version tag on the merge commit.
+5. Triggers all of that project's workflows in parallel on the version tag, waits for all to complete.
+6. Creates a GitHub Release.
 
 Example:
 ```
