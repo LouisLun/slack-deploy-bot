@@ -60,7 +60,7 @@ async function runDeploy({ token, groupName, channelId }) {
         continue;
       }
 
-      // All projects in this step run concurrently; workflows within each project run sequentially
+      // All projects in this step run concurrently; workflows within each project run concurrently
       const results = await Promise.allSettled(
         tasks.map((t) => deployProject(gh, t, channelId))
       );
@@ -97,7 +97,7 @@ async function deployProject(gh, { project, pr, version, owner, repo }, channelI
   try {
     // 3. Trigger workflows on the version tag
     await Promise.all(
-      project.workflows.map(async (workflow) => {
+      (project.workflows ?? []).map(async (workflow) => {
         await postMessage(channelId, `[${project.name}] Triggering \`${workflow}\` on \`${version}\``);
 
         const since = new Date(Date.now() - 2000);

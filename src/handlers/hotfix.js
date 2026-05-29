@@ -53,7 +53,7 @@ async function runHotfix({ token, projectName, channelId }) {
     try {
       // 3. Trigger workflows on the version tag
       await Promise.all(
-        projectConfig.workflows.map(async (workflow) => {
+        (projectConfig.workflows ?? []).map(async (workflow) => {
           await postMessage(channelId, `[${projectName}] Triggering \`${workflow}\` on \`${version}\``);
 
           const since = new Date(Date.now() - 2000);
