@@ -5,6 +5,7 @@ const {
   triggerWorkflow,
   waitForWorkflowRun,
   createRelease,
+  createTag,
   mergePR,
 } = require('../services/github');
 const { readConfig } = require('../services/config');
@@ -41,14 +42,23 @@ async function runHotfix({ token, projectName, channelId }) {
       `:fire: Starting hotfix for *${projectName}* → \`${version}\` (PR: ${pr.html_url})`
     );
 
+    // 1. Merge PR
+    const merged = await mergePR(gh, owner, repo, pr.number, `Hotfix ${version}`);
+    await postMessage(channelId, `[${projectName}] PR #${pr.number} merged :merged:`);
+
+    // 2. Create version tag on merge commit
+    await createTag(gh, owner, repo, version, merged.sha);
+    await postMessage(channelId, `[${projectName}] Tag \`${version}\` created`);
+
+    // 3. Trigger workflows on the version tag
     await Promise.all(
       projectConfig.workflows.map(async (workflow) => {
-        await postMessage(channelId, `[${projectName}] Triggering \`${workflow}\` on \`${branch}\``);
+        await postMessage(channelId, `[${projectName}] Triggering \`${workflow}\` on \`${version}\``);
 
         const since = new Date(Date.now() - 2000);
-        await triggerWorkflow(gh, owner, repo, workflow, branch, { version });
+        await triggerWorkflow(gh, owner, repo, workflow, version);
 
-        const run = await waitForWorkflowRun(gh, owner, repo, workflow, branch, since);
+        const run = await waitForWorkflowRun(gh, owner, repo, workflow, version, since);
 
         if (run.conclusion !== 'success') {
           throw new Error(`\`${workflow}\` failed (conclusion: \`${run.conclusion}\`)`);
@@ -58,8 +68,7 @@ async function runHotfix({ token, projectName, channelId }) {
       })
     );
 
-    const merged = await mergePR(gh, owner, repo, pr.number, `Hotfix ${version}`);
-
+    // 4. Create GitHub Release
     await createRelease(
       gh,
       owner,
@@ -71,7 +80,7 @@ async function runHotfix({ token, projectName, channelId }) {
 
     await postMessage(
       channelId,
-      `:tada: Hotfix complete! PR #${pr.number} merged and release \`${version}\` created for *${projectName}*`
+      `:tada: Hotfix complete! PR #${pr.number} merged, release \`${version}\` created for *${projectName}*`
     );
   } catch (err) {
     await postMessage(channelId, `:x: Hotfix failed for ${projectName}: ${err.message}`);

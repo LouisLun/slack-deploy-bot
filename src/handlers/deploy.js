@@ -5,6 +5,7 @@ const {
   triggerWorkflow,
   waitForWorkflowRun,
   createRelease,
+  createTag,
   mergePR,
 } = require('../services/github');
 const { readConfig } = require('../services/config');
@@ -84,16 +85,23 @@ async function runDeploy({ token, groupName, channelId }) {
 }
 
 async function deployProject(gh, { project, pr, version, owner, repo }, channelId) {
-  const branch = pr.head.ref;
+  // 1. Merge PR
+  const merged = await mergePR(gh, owner, repo, pr.number, `Deploy ${version}`);
+  await postMessage(channelId, `[${project.name}] PR #${pr.number} merged :merged:`);
 
+  // 2. Create version tag on merge commit
+  await createTag(gh, owner, repo, version, merged.sha);
+  await postMessage(channelId, `[${project.name}] Tag \`${version}\` created`);
+
+  // 3. Trigger workflows on the version tag
   await Promise.all(
     project.workflows.map(async (workflow) => {
-      await postMessage(channelId, `[${project.name}] Triggering \`${workflow}\` on \`${branch}\``);
+      await postMessage(channelId, `[${project.name}] Triggering \`${workflow}\` on \`${version}\``);
 
       const since = new Date(Date.now() - 2000);
-      await triggerWorkflow(gh, owner, repo, workflow, branch, { version });
+      await triggerWorkflow(gh, owner, repo, workflow, version);
 
-      const run = await waitForWorkflowRun(gh, owner, repo, workflow, branch, since);
+      const run = await waitForWorkflowRun(gh, owner, repo, workflow, version, since);
 
       if (run.conclusion !== 'success') {
         throw new Error(
@@ -105,9 +113,7 @@ async function deployProject(gh, { project, pr, version, owner, repo }, channelI
     })
   );
 
-  const merged = await mergePR(gh, owner, repo, pr.number, `Deploy ${version}`);
-  await postMessage(channelId, `[${project.name}] PR #${pr.number} merged :merged:`);
-
+  // 4. Create GitHub Release
   await createRelease(
     gh,
     owner,

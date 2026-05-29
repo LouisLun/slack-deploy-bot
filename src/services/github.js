@@ -115,6 +115,13 @@ async function createRelease(client, owner, repo, tag, sha, body = '') {
   });
 }
 
+async function createTag(client, owner, repo, tag, sha) {
+  await client.post(`/repos/${owner}/${repo}/git/refs`, {
+    ref: `refs/tags/${tag}`,
+    sha,
+  });
+}
+
 async function mergePR(client, owner, repo, pullNumber, commitTitle) {
   return client.request('PUT', `/repos/${owner}/${repo}/pulls/${pullNumber}/merge`, {
     commit_title: commitTitle,
@@ -147,6 +154,7 @@ module.exports = {
   triggerWorkflow,
   waitForWorkflowRun,
   createRelease,
+  createTag,
   mergePR,
   exchangeCodeForToken,
 };
