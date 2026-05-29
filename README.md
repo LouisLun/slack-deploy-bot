@@ -168,6 +168,8 @@ Configure these in **GitHub repo → Settings → Secrets and variables → Acti
 |---|---|
 | `WIF_PROVIDER` | Workload Identity Federation provider resource name<br>`projects/<project-number>/locations/global/workloadIdentityPools/<pool>/providers/<provider>` |
 | `WIF_SERVICE_ACCOUNT` | Service account email used for deployment<br>`deploy-bot@<project-id>.iam.gserviceaccount.com` |
+| `DOCKERHUB_USERNAME` | Docker Hub username |
+| `DOCKERHUB_TOKEN` | Docker Hub access token (Settings → Security → Access Tokens) |
 | `SLACK_SIGNING_SECRET` | Slack App signing secret |
 | `SLACK_BOT_TOKEN` | Slack Bot User OAuth Token (`xoxb-…`) |
 | `GITHUB_CLIENT_ID` | GitHub OAuth App client ID |
@@ -178,15 +180,14 @@ Configure these in **GitHub repo → Settings → Secrets and variables → Acti
 | Name | Example | Description |
 |---|---|---|
 | `GCP_PROJECT` | `my-project-id` | GCP project ID |
-| `AR_REGION` | `asia-east1` | Artifact Registry and Cloud Run region |
-| `AR_REPOSITORY` | `slack-deploy-bot` | Artifact Registry Docker repository name |
+| `GCP_REGION` | `asia-east1` | Cloud Run region |
 | `CLOUD_RUN_SERVICE` | `slack-deploy-bot` | Cloud Run service name |
 | `GCS_BUCKET_NAME` | `my-bucket` | GCS bucket storing the deploy config |
 | `GCS_CONFIG_FILE_PATH` | `deploy-config.json` | Config file path inside the bucket |
 
-The deploy workflow constructs the image path as:
+The deploy workflow pushes the image to Docker Hub as:
 ```
-<AR_REGION>-docker.pkg.dev/<GCP_PROJECT>/<AR_REPOSITORY>/slack-deploy-bot
+<DOCKERHUB_USERNAME>/slack-deploy-bot:<sha>
 ```
 
 Secrets and variables are injected into Cloud Run as environment variables on every deploy.
@@ -207,9 +208,6 @@ gcloud iam service-accounts create $SA --project=$PROJECT_ID
 gcloud projects add-iam-policy-binding $PROJECT_ID \
   --member="serviceAccount:$SA@$PROJECT_ID.iam.gserviceaccount.com" \
   --role="roles/run.admin"
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:$SA@$PROJECT_ID.iam.gserviceaccount.com" \
-  --role="roles/artifactregistry.writer"
 gcloud projects add-iam-policy-binding $PROJECT_ID \
   --member="serviceAccount:$SA@$PROJECT_ID.iam.gserviceaccount.com" \
   --role="roles/iam.serviceAccountUser"
@@ -240,15 +238,6 @@ echo "WIF_PROVIDER: projects/$PROJECT_NUMBER/locations/global/workloadIdentityPo
 echo "WIF_SERVICE_ACCOUNT: $SA@$PROJECT_ID.iam.gserviceaccount.com"
 ```
 
-### Creating the Artifact Registry repository
-
-```bash
-gcloud artifacts repositories create slack-deploy-bot \
-  --repository-format=docker \
-  --location=asia-east1 \
-  --project=$PROJECT_ID
-```
-
 ---
 
 ## Cloud Run Deployment
@@ -258,7 +247,6 @@ gcloud artifacts repositories create slack-deploy-bot \
 ```bash
 gcloud services enable \
   run.googleapis.com \
-  artifactregistry.googleapis.com \
   storage.googleapis.com \
   iamcredentials.googleapis.com
 ```
@@ -284,9 +272,9 @@ Or from **GCP Console → Cloud Run → slack-deploy-bot → URL**.
 ### Manual deploy (without GitHub Actions)
 
 ```bash
-PROJECT_ID=my-project-id
+DOCKERHUB_USERNAME=your-dockerhub-username
 REGION=asia-east1
-IMAGE=$REGION-docker.pkg.dev/$PROJECT_ID/slack-deploy-bot/slack-deploy-bot
+IMAGE=$DOCKERHUB_USERNAME/slack-deploy-bot
 
 docker build -t $IMAGE .
 docker push $IMAGE
