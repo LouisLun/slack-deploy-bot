@@ -1,9 +1,7 @@
 name: Deploy to Cloud Run
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 env:
   # Full Artifact Registry image path:
