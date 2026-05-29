@@ -67,11 +67,21 @@ async function getNextVersion(client, owner, repo) {
   }
 }
 
-async function triggerWorkflow(client, owner, repo, workflowFile, ref, inputs = {}) {
-  await client.post(
-    `/repos/${owner}/${repo}/actions/workflows/${workflowFile}/dispatches`,
-    { ref, inputs }
-  );
+async function triggerWorkflow(client, owner, repo, workflowFile, ref, inputs = {}, maxRetries = 3) {
+  let lastError;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      await client.post(
+        `/repos/${owner}/${repo}/actions/workflows/${workflowFile}/dispatches`,
+        { ref, inputs }
+      );
+      return;
+    } catch (err) {
+      lastError = err;
+      if (attempt < maxRetries) await sleep(2000 * attempt);
+    }
+  }
+  throw lastError;
 }
 
 async function waitForWorkflowRun(client, owner, repo, workflowFile, branch, since) {
