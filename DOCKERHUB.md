@@ -20,7 +20,7 @@ docker run -p 8080:8080 \
   -e GITHUB_CLIENT_ID=... \
   -e GITHUB_CLIENT_SECRET=... \
   -e DEPLOY_CONFIG_JSON='{"groups":{...},"projects":{...}}' \
-  louislun/slack-deploy-bot
+  coffeesouffle/slack-deploy-bot
 ```
 
 ## Environment Variables
