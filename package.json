@@ -1,0 +1,18 @@
+{
+  "name": "slack-deploy-bot",
+  "version": "1.0.0",
+  "description": "Slack deploy bot that triggers GitHub workflows via Cloud Run",
+  "main": "src/index.js",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "dependencies": {
+    "@google-cloud/storage": "^7.0.0",
+    "@slack/web-api": "^7.0.0",
+    "express": "^4.19.0"
+  }
+}
