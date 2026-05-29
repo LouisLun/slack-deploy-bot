@@ -101,15 +101,14 @@ The config file is JSON stored in GCS. It is read fresh on every request; no cac
 ```
 /deploy production
   │
-  ├─ Step 1 (concurrent)
-  │   ├─ restful:  release-cd.yml ──► wait ──┐
-  │   │                                      ├─► release
-  │   ├─ wms:      release-cd.yml ──► wait ──┤
-  │   │            notify.yml    ──► wait ──┘
-  │   └─ console:  release-cd.yml ──► wait ──► release
+  ├─ Step 1 (all projects concurrent)
+  │   ├─ restful:  release-cd.yml ─────────────► wait ──► release
+  │   ├─ wms:      release-cd.yml ──► wait ──┐
+  │   │            notify.yml     ──► wait ──┴─► release
+  │   └─ console:  release-cd.yml ─────────────► wait ──► release
   │
   └─ Step 2 (starts only after Step 1 fully completes)
-      └─ website:  release-cd.yml ──► wait ──► release
+      └─ website:  release-cd.yml ─────────────► wait ──► release
 ```
 
 - Projects **within the same step** are triggered in parallel.
