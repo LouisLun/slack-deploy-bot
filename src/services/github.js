@@ -126,10 +126,22 @@ async function createRelease(client, owner, repo, tag, sha, body = '') {
 }
 
 async function createTag(client, owner, repo, tag, sha) {
-  await client.post(`/repos/${owner}/${repo}/git/refs`, {
-    ref: `refs/tags/${tag}`,
-    sha,
-  });
+  try {
+    await client.post(`/repos/${owner}/${repo}/git/refs`, {
+      ref: `refs/tags/${tag}`,
+      sha,
+    });
+  } catch (err) {
+    if (err.message.includes('Reference already exists')) {
+      // Force update existing tag to new SHA
+      await client.request('PATCH', `/repos/${owner}/${repo}/git/refs/tags/${tag}`, {
+        sha,
+        force: true,
+      });
+    } else {
+      throw err;
+    }
+  }
 }
 
 async function deleteTag(client, owner, repo, tag) {
