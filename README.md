@@ -4,6 +4,18 @@ A Node.js HTTP server deployed on Google Cloud Run that handles Slack Slash Comm
 
 ---
 
+## Using This Template
+
+This repository is a [GitHub Template](https://github.com/LouisLun/slack-deploy-bot). To use it for your own organization:
+
+1. Click **Use this template** → **Create a new repository**
+2. Select owner, name the repo, set visibility
+3. Follow the Setup Order below in your new repo
+
+Each organization gets a fully independent repo with no link back to this template.
+
+---
+
 ## Setup Order
 
 > Cloud Run URL is required for both GitHub OAuth App and Slack slash command URLs. Do a first deploy with placeholder secrets to obtain the URL, then complete the remaining setup.
