@@ -35,7 +35,6 @@ async function runHotfix({ token, projectName, channelId }) {
     }
 
     const version = await getNextVersion(gh, owner, repo);
-    const branch = pr.head.ref;
 
     await postMessage(
       channelId,
