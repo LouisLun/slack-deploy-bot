@@ -43,7 +43,7 @@ async function runHotfix({ token, projectName, channelId }) {
 
     // 1. Merge PR
     const merged = await mergePR(gh, owner, repo, pr.number, `Hotfix ${version}`);
-    await postMessage(channelId, `[${projectName}] PR #${pr.number} merged :merged:`);
+    await postMessage(channelId, `[${projectName}] <${pr.html_url}|PR #${pr.number}> merged :merged:`);
 
     // 2. Create version tag on merge commit
     await createTag(gh, owner, repo, version, merged.sha);
@@ -79,7 +79,7 @@ async function runHotfix({ token, projectName, channelId }) {
 
     await postMessage(
       channelId,
-      `:tada: Hotfix complete! PR #${pr.number} merged, release \`${version}\` created for *${projectName}*`
+      `:tada: Hotfix complete! <${pr.html_url}|PR #${pr.number}> merged, release \`${version}\` created for *${projectName}*`
     );
   } catch (err) {
     await postMessage(channelId, `:x: Hotfix failed for ${projectName}: ${err.message}`);
