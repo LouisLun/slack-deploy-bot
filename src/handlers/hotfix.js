@@ -39,7 +39,7 @@ async function runHotfix({ token, projectName, releaseTitle, userId, channelId }
 
     await postMessage(
       channelId,
-      `:fire: Starting hotfix for *${projectName}* → \`${version}\` — *${releaseTitle}* (by <@${userId}>) (PR: ${pr.html_url})`
+      `:fire: Starting hotfix for *${projectName}* — *${releaseTitle}* (by <@${userId}>) (PR: ${pr.html_url})`
     );
 
     // 1. Merge PR
