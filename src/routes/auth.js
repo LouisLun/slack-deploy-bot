@@ -42,13 +42,13 @@ router.get('/github/callback', async (req, res) => {
   // Respond to browser immediately; run deploy/hotfix in background
   res.send(HTML_SUCCESS);
 
-  const { command, channelId } = stateData;
+  const { command, channelId, userId } = stateData;
 
   if (command === 'deploy') {
-    runDeploy({ token, groupName: stateData.groupName, releaseTitle: stateData.releaseTitle, channelId })
+    runDeploy({ token, groupName: stateData.groupName, releaseTitle: stateData.releaseTitle, userId, channelId })
       .catch((err) => console.error('Background runDeploy error:', err));
   } else if (command === 'hotfix') {
-    runHotfix({ token, projectName: stateData.projectName, releaseTitle: stateData.releaseTitle, channelId })
+    runHotfix({ token, projectName: stateData.projectName, releaseTitle: stateData.releaseTitle, userId, channelId })
       .catch((err) => console.error('Background runHotfix error:', err));
   }
 });

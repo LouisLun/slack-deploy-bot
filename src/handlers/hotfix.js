@@ -12,7 +12,7 @@ const {
 const { readConfig } = require('../services/config');
 const { postMessage } = require('../services/slack');
 
-async function runHotfix({ token, projectName, releaseTitle, channelId }) {
+async function runHotfix({ token, projectName, releaseTitle, userId, channelId }) {
   const gh = new GitHubClient(token);
 
   try {
@@ -39,7 +39,7 @@ async function runHotfix({ token, projectName, releaseTitle, channelId }) {
 
     await postMessage(
       channelId,
-      `:fire: Starting hotfix for *${projectName}* → \`${version}\` (PR: ${pr.html_url})`
+      `:fire: Starting hotfix for *${projectName}* → \`${version}\` — *${releaseTitle}* (by <@${userId}>) (PR: ${pr.html_url})`
     );
 
     // 1. Merge PR

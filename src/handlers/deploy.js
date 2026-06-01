@@ -12,7 +12,7 @@ const {
 const { readConfig } = require('../services/config');
 const { postMessage } = require('../services/slack');
 
-async function runDeploy({ token, groupName, releaseTitle, channelId }) {
+async function runDeploy({ token, groupName, releaseTitle, userId, channelId }) {
   const gh = new GitHubClient(token);
 
   try {
@@ -24,7 +24,7 @@ async function runDeploy({ token, groupName, releaseTitle, channelId }) {
       return;
     }
 
-    await postMessage(channelId, `:rocket: Starting deploy for group *${groupName}*`);
+    await postMessage(channelId, `:rocket: Starting deploy for group *${groupName}* — *${releaseTitle}* (by <@${userId}>)`);
 
     for (const stepDef of steps) {
       const { step, projects } = stepDef;
