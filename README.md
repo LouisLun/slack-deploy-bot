@@ -77,7 +77,7 @@ The app reads the deploy config on every request. Two providers are supported â€
 
 **Inline JSON example** (`DEPLOY_CONFIG_JSON` secret value):
 ```json
-{"groups":{"production":[{"step":1,"projects":[{"name":"restful","repo":"myorg/restful","workflows":["release-cd.yml"]}]}]},"projects":{"restful":{"repo":"myorg/restful","workflows":["release-cd.yml"]}}}
+{"groups":{"production":[{"step":1,"projects":[{"name":"restful","repo":"myorg/restful","workflows":["release-cd.yml"]},{"name":"frontend","repo":"myorg/frontend","mergeOnly":true}]}]},"projects":{"restful":{"repo":"myorg/restful","workflows":["release-cd.yml"]},"frontend":{"repo":"myorg/frontend","mergeOnly":true}}}
 ```
 
 ---
