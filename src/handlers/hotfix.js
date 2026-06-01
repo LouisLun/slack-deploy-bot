@@ -12,7 +12,7 @@ const {
 const { readConfig } = require('../services/config');
 const { postMessage } = require('../services/slack');
 
-async function runHotfix({ token, projectName, channelId }) {
+async function runHotfix({ token, projectName, releaseTitle, channelId }) {
   const gh = new GitHubClient(token);
 
   try {
@@ -76,6 +76,7 @@ async function runHotfix({ token, projectName, channelId }) {
         repo,
         version,
         merged.sha,
+        releaseTitle,
         `Hotfix deployed via PR ${pr.html_url}`
       );
 

@@ -12,7 +12,7 @@ const {
 const { readConfig } = require('../services/config');
 const { postMessage } = require('../services/slack');
 
-async function runDeploy({ token, groupName, channelId }) {
+async function runDeploy({ token, groupName, releaseTitle, channelId }) {
   const gh = new GitHubClient(token);
 
   try {
@@ -62,7 +62,7 @@ async function runDeploy({ token, groupName, channelId }) {
 
       // All projects in this step run concurrently; workflows within each project run concurrently
       const results = await Promise.allSettled(
-        tasks.map((t) => deployProject(gh, t, channelId))
+        tasks.map((t) => deployProject(gh, t, channelId, releaseTitle))
       );
 
       const failures = results.filter((r) => r.status === 'rejected');
@@ -85,7 +85,7 @@ async function runDeploy({ token, groupName, channelId }) {
   }
 }
 
-async function deployProject(gh, { project, pr, version, owner, repo }, channelId) {
+async function deployProject(gh, { project, pr, version, owner, repo }, channelId, releaseTitle) {
   // 1. Merge PR
   const merged = await mergePR(gh, owner, repo, pr.number, `Merge pull request #${pr.number} from ${pr.head.repo.owner.login}/${pr.head.ref}`);
   await postMessage(channelId, `[${project.name}] <${pr.html_url}|PR #${pr.number}> merged :merged:`);
@@ -122,6 +122,7 @@ async function deployProject(gh, { project, pr, version, owner, repo }, channelI
       repo,
       version,
       merged.sha,
+      releaseTitle,
       `Deployed via PR ${pr.html_url}`
     );
 

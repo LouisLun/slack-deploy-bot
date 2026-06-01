@@ -17,13 +17,15 @@ function buildOAuthUrl(stateKey) {
 
 router.post('/deploy', (req, res) => {
   const { text, channel_id, user_id } = req.body;
-  const groupName = (text || '').trim().replace(/`/g, '');
+  const parts = (text || '').trim().replace(/`/g, '').split(/\s+/);
+  const groupName = parts[0];
+  const releaseTitle = parts.slice(1).join(' ');
 
-  if (!groupName) {
-    return res.json({ response_type: 'ephemeral', text: 'Usage: `/deploy <group-name>`' });
+  if (!groupName || !releaseTitle) {
+    return res.json({ response_type: 'ephemeral', text: 'Usage: `/deploy <group-name> <release title>`' });
   }
 
-  const key = createState({ command: 'deploy', groupName, channelId: channel_id, userId: user_id });
+  const key = createState({ command: 'deploy', groupName, releaseTitle, channelId: channel_id, userId: user_id });
   const url = buildOAuthUrl(key);
 
   return res.json({
@@ -34,13 +36,15 @@ router.post('/deploy', (req, res) => {
 
 router.post('/hotfix', (req, res) => {
   const { text, channel_id, user_id } = req.body;
-  const projectName = (text || '').trim().replace(/`/g, '');
+  const parts = (text || '').trim().replace(/`/g, '').split(/\s+/);
+  const projectName = parts[0];
+  const releaseTitle = parts.slice(1).join(' ');
 
-  if (!projectName) {
-    return res.json({ response_type: 'ephemeral', text: 'Usage: `/hotfix <project-name>`' });
+  if (!projectName || !releaseTitle) {
+    return res.json({ response_type: 'ephemeral', text: 'Usage: `/hotfix <project-name> <release title>`' });
   }
 
-  const key = createState({ command: 'hotfix', projectName, channelId: channel_id, userId: user_id });
+  const key = createState({ command: 'hotfix', projectName, releaseTitle, channelId: channel_id, userId: user_id });
   const url = buildOAuthUrl(key);
 
   return res.json({

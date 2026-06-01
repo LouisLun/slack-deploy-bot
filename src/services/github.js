@@ -114,11 +114,11 @@ async function waitForWorkflowRun(client, owner, repo, workflowFile, branch, sin
   throw new Error(`Workflow timed out after 30 minutes: ${workflowFile}`);
 }
 
-async function createRelease(client, owner, repo, tag, sha, body = '') {
+async function createRelease(client, owner, repo, tag, sha, name, body = '') {
   await client.post(`/repos/${owner}/${repo}/releases`, {
     tag_name: tag,
     target_commitish: sha,
-    name: tag,
+    name,
     body,
     draft: false,
     prerelease: false,

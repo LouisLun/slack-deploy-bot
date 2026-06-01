@@ -45,10 +45,10 @@ router.get('/github/callback', async (req, res) => {
   const { command, channelId } = stateData;
 
   if (command === 'deploy') {
-    runDeploy({ token, groupName: stateData.groupName, channelId })
+    runDeploy({ token, groupName: stateData.groupName, releaseTitle: stateData.releaseTitle, channelId })
       .catch((err) => console.error('Background runDeploy error:', err));
   } else if (command === 'hotfix') {
-    runHotfix({ token, projectName: stateData.projectName, channelId })
+    runHotfix({ token, projectName: stateData.projectName, releaseTitle: stateData.releaseTitle, channelId })
       .catch((err) => console.error('Background runHotfix error:', err));
   }
 });
