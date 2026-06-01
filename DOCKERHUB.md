@@ -4,12 +4,13 @@ A Node.js HTTP server that handles Slack Slash Commands and triggers GitHub Acti
 
 ## Features
 
-- `/deploy <group>` — deploys a group of projects in ordered steps, with parallel execution within each step
-- `/hotfix <project>` — deploys a single project's hotfix branch
+- `/deploy <group> <release title>` — deploys a group of projects in ordered steps, with parallel execution within each step
+- `/hotfix <project> <release title>` — deploys a single project's hotfix branch
 - `/deploy-config list` — lists current deployment configuration
 - GitHub OAuth per-user authorization — tokens are never stored
 - Deploy config loaded from GCS or inline JSON (via environment variable)
-- Real-time Slack progress updates throughout deployment
+- Real-time Slack progress updates throughout deployment, including release title and operator mention
+- `mergeOnly` flag for projects that auto-deploy on PR merge (e.g. Cloudflare Pages) — skips tag, workflow, and release
 
 ## Quick Start
 
@@ -45,8 +46,9 @@ docker run -p 8080:8080 \
       {
         "step": 1,
         "projects": [
-          { "name": "api",     "repo": "myorg/api",     "workflows": ["release-cd.yml"] },
-          { "name": "console", "repo": "myorg/console", "workflows": ["release-cd.yml"] }
+          { "name": "api",      "repo": "myorg/api",      "workflows": ["release-cd.yml"] },
+          { "name": "console",  "repo": "myorg/console",  "workflows": ["release-cd.yml"] },
+          { "name": "frontend", "repo": "myorg/frontend", "mergeOnly": true }
         ]
       },
       {
@@ -58,9 +60,10 @@ docker run -p 8080:8080 \
     ]
   },
   "projects": {
-    "api":     { "repo": "myorg/api",     "workflows": ["release-cd.yml"] },
-    "console": { "repo": "myorg/console", "workflows": ["release-cd.yml"] },
-    "website": { "repo": "myorg/website", "workflows": ["release-cd.yml"] }
+    "api":      { "repo": "myorg/api",      "workflows": ["release-cd.yml"] },
+    "console":  { "repo": "myorg/console",  "workflows": ["release-cd.yml"] },
+    "website":  { "repo": "myorg/website",  "workflows": ["release-cd.yml"] },
+    "frontend": { "repo": "myorg/frontend", "mergeOnly": true }
   }
 }
 ```
