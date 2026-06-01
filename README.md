@@ -95,7 +95,8 @@ The config file is JSON stored in GCS. It is read fresh on every request; no cac
         "projects": [
           { "name": "restful",  "repo": "myorg/restful",  "workflows": ["release-cd.yml"] },
           { "name": "wms",      "repo": "myorg/wms",      "workflows": ["release-cd.yml", "notify.yml"] },
-          { "name": "console",  "repo": "myorg/console",  "workflows": ["release-cd.yml"] }
+          { "name": "console",  "repo": "myorg/console",  "workflows": ["release-cd.yml"] },
+          { "name": "frontend", "repo": "myorg/frontend", "mergeOnly": true }
         ]
       },
       {
@@ -110,34 +111,51 @@ The config file is JSON stored in GCS. It is read fresh on every request; no cac
     "restful":  { "repo": "myorg/restful",  "workflows": ["release-cd.yml"] },
     "wms":      { "repo": "myorg/wms",      "workflows": ["release-cd.yml", "notify.yml"] },
     "console":  { "repo": "myorg/console",  "workflows": ["release-cd.yml"] },
-    "website":  { "repo": "myorg/website",  "workflows": ["release-cd.yml"] }
+    "website":  { "repo": "myorg/website",  "workflows": ["release-cd.yml"] },
+    "frontend": { "repo": "myorg/frontend", "mergeOnly": true }
   }
 }
 ```
 
 - `groups` is used by `/deploy`. Each group contains ordered steps.
 - `projects` is used by `/hotfix`. Flat map of project name → repo + workflows.
+- `mergeOnly: true` — merge the PR and stop. No tag, no workflow trigger, no GitHub Release. Use for projects that auto-deploy on merge (e.g. Cloudflare Pages).
 - The config is **read-only** from the app's perspective. Modify it directly in GCS.
 
 ---
 
+## Deploy Usage (`/deploy`)
+
+```
+/deploy <group-name> <release title>
+```
+
+The release title is used as the GitHub Release name and shown in the Slack start message alongside the operator's mention.
+
+Example:
+```
+/deploy production Fix checkout flow
+```
+
 ## Step Flow Logic (`/deploy`)
 
 ```
-/deploy production
+/deploy production Fix checkout flow
   │
   ├─ Step 1 (all projects concurrent)
-  │   ├─ restful:  merge PR ──► tag v1.0.1 ──► release-cd.yml ──► wait ──► release
+  │   ├─ restful:  merge PR ──► tag v1.0.1 ──► release-cd.yml ──► wait ──► release "Fix checkout flow"
   │   ├─ wms:      merge PR ──► tag v1.0.1 ──► release-cd.yml ──► wait ──┐
-  │   │                                        notify.yml     ──► wait ──┴─► release
-  │   └─ console:  merge PR ──► tag v1.0.1 ──► release-cd.yml ──► wait ──► release
+  │   │                                        notify.yml     ──► wait ──┴─► release "Fix checkout flow"
+  │   ├─ console:  merge PR ──► tag v1.0.1 ──► release-cd.yml ──► wait ──► release "Fix checkout flow"
+  │   └─ frontend: merge PR ──► (done, auto-deploys via Cloudflare)
   │
   └─ Step 2 (starts only after Step 1 fully completes)
-      └─ website:  merge PR ──► tag v1.0.1 ──► release-cd.yml ──► wait ──► release
+      └─ website:  merge PR ──► tag v1.0.1 ──► release-cd.yml ──► wait ──► release "Fix checkout flow"
 ```
 
 - Projects **within the same step** are triggered in parallel.
-- Per project: merge PR → create version tag on merge commit → trigger all workflows in parallel on that tag → wait for all to complete → create GitHub Release.
+- Per project (normal): merge PR → create version tag on merge commit → trigger all workflows in parallel on that tag → wait for all to complete → create GitHub Release with the provided release title.
+- Per project (`mergeOnly: true`): merge PR only — no tag, no workflow, no release.
 - Workflows are triggered via `workflow_dispatch` with the version tag as ref (visible in GitHub Actions UI).
 - Each workflow completion message includes a direct link to the GitHub Actions run.
 - A failed workflow deletes the version tag and aborts the release for that project, blocking the next step.
@@ -148,20 +166,23 @@ The config file is JSON stored in GCS. It is read fresh on every request; no cac
 ## Hotfix Usage (`/hotfix`)
 
 ```
-/hotfix <project-name>
+/hotfix <project-name> <release title>
 ```
+
+The release title is used as the GitHub Release name and shown in the Slack start message alongside the operator's mention.
 
 1. Looks up `<project-name>` in `config.projects`.
 2. Finds the most recently updated open PR labelled `hotfix` (case-insensitive).
 3. Merges the PR.
-4. Creates a version tag on the merge commit.
-5. Triggers all of that project's workflows in parallel on the version tag, waits for all to complete.
-6. On failure: deletes the version tag and reports the GitHub Actions run link in Slack.
-7. On success: creates a GitHub Release.
+4. If `mergeOnly: true` — stops here (auto-deploys externally).
+5. Creates a version tag on the merge commit.
+6. Triggers all of that project's workflows in parallel on the version tag, waits for all to complete.
+7. On failure: deletes the version tag and reports the GitHub Actions run link in Slack.
+8. On success: creates a GitHub Release with the provided release title.
 
 Example:
 ```
-/hotfix wms
+/hotfix wms Fix order sync bug
 ```
 
 ---
@@ -361,8 +382,8 @@ The bot requests the `repo` scope, which covers:
 
 | Method | Path | Description |
 |---|---|---|
-| `POST` | `/slack/deploy` | Handles `/deploy <group>` slash command |
-| `POST` | `/slack/hotfix` | Handles `/hotfix <project>` slash command |
+| `POST` | `/slack/deploy` | Handles `/deploy <group> <release title>` slash command |
+| `POST` | `/slack/hotfix` | Handles `/hotfix <project> <release title>` slash command |
 | `POST` | `/slack/deploy-config` | Handles `/deploy-config list` slash command |
 | `GET` | `/auth/github/callback` | GitHub OAuth callback |
 | `GET` | `/health` | Health check |
