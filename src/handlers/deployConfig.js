@@ -18,7 +18,8 @@ async function handleDeployConfig(subcommand) {
 
   lines.push('\n*Projects:*');
   for (const [name, project] of Object.entries(config.projects || {})) {
-    lines.push(`• \`${name}\`  ${project.repo}  workflows: ${project.workflows.join(', ')}`);
+    const detail = project.mergeOnly ? 'merge-only' : `workflows: ${(project.workflows ?? []).join(', ') || '(none)'}`;
+    lines.push(`• \`${name}\`  ${project.repo}  ${detail}`);
   }
 
   return { text: lines.join('\n') };

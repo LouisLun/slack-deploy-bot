@@ -90,6 +90,8 @@ async function deployProject(gh, { project, pr, version, owner, repo }, channelI
   const merged = await mergePR(gh, owner, repo, pr.number, `Merge pull request #${pr.number} from ${pr.head.repo.owner.login}/${pr.head.ref}`);
   await postMessage(channelId, `[${project.name}] <${pr.html_url}|PR #${pr.number}> merged :merged:`);
 
+  if (project.mergeOnly) return;
+
   // 2. Create version tag on merge commit
   await createTag(gh, owner, repo, version, merged.sha);
   await postMessage(channelId, `[${project.name}] Tag \`${version}\` created`);
