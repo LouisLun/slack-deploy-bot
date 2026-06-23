@@ -56,11 +56,30 @@ Step 8 — Redeploy to apply all environment variables
 |---|---|
 | `SLACK_SIGNING_SECRET` | Found in Slack App → Basic Information → App Credentials |
 | `SLACK_BOT_TOKEN` | `xoxb-…` token from Slack App → OAuth & Permissions |
-| `GITHUB_CLIENT_ID` | GitHub App client ID |
-| `GITHUB_CLIENT_SECRET` | GitHub App client secret |
 | `GCS_BUCKET_NAME` | GCS bucket that stores the config file |
 | `GCS_CONFIG_FILE_PATH` | Path inside the bucket, e.g. `deploy-config.json` |
 | `PORT` | (optional) defaults to `8080` |
+
+### GitHub Auth Mode
+
+Set `GITHUB_AUTH_MODE` to choose how the bot authenticates with GitHub:
+
+**`oauth` (default)** — each user authorizes via GitHub OAuth before deploying. API calls are made as the individual user.
+
+| Variable | Description |
+|---|---|
+| `GITHUB_AUTH_MODE` | Set to `oauth` or omit |
+| `GITHUB_CLIENT_ID` | GitHub App client ID |
+| `GITHUB_CLIENT_SECRET` | GitHub App client secret |
+
+**`app`** — bot uses a GitHub App installation token. No per-user OAuth required; API calls are made as the bot.
+
+| Variable | Description |
+|---|---|
+| `GITHUB_AUTH_MODE` | Set to `app` |
+| `GITHUB_APP_ID` | GitHub App ID (found on the App settings page) |
+| `GITHUB_PRIVATE_KEY` | GitHub App private key (full PEM content, newlines as `\n`) |
+| `GITHUB_INSTALLATION_ID` | Installation ID (from the URL after installing the App) |
 
 ---
 
@@ -212,8 +231,12 @@ Configure these in **GitHub repo → Settings → Secrets and variables → Acti
 | `DEPLOY_CONFIG_JSON` | (optional) Full deploy config JSON string — overrides GCS when set |
 | `SLACK_SIGNING_SECRET` | Slack App signing secret |
 | `SLACK_BOT_TOKEN` | Slack Bot User OAuth Token (`xoxb-…`) |
-| `GITHUB_CLIENT_ID` | GitHub App client ID |
-| `GITHUB_CLIENT_SECRET` | GitHub App client secret |
+| `GITHUB_CLIENT_ID` | GitHub App client ID (`oauth` mode) |
+| `GITHUB_CLIENT_SECRET` | GitHub App client secret (`oauth` mode) |
+| `GITHUB_AUTH_MODE` | Set to `app` to use bot identity instead of per-user OAuth |
+| `GITHUB_APP_ID` | GitHub App ID (`app` mode) |
+| `GITHUB_PRIVATE_KEY` | GitHub App private key PEM (`app` mode) |
+| `GITHUB_INSTALLATION_ID` | GitHub App installation ID (`app` mode) |
 
 ### Variables (vars)
 

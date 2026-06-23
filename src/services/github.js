@@ -1,3 +1,5 @@
+const crypto = require('crypto');
+
 const GITHUB_API = 'https://api.github.com';
 
 function sleep(ms) {
@@ -173,6 +175,22 @@ async function exchangeCodeForToken(code) {
   return data.access_token;
 }
 
+function generateJWT(appId, privateKey) {
+  const now = Math.floor(Date.now() / 1000);
+  const header = Buffer.from(JSON.stringify({ alg: 'RS256', typ: 'JWT' })).toString('base64url');
+  const payload = Buffer.from(JSON.stringify({ iat: now - 60, exp: now + 600, iss: String(appId) })).toString('base64url');
+  const data = `${header}.${payload}`;
+  const signature = crypto.createSign('RSA-SHA256').update(data).sign(privateKey, 'base64url');
+  return `${data}.${signature}`;
+}
+
+async function getInstallationToken(appId, privateKey, installationId) {
+  const jwt = generateJWT(appId, privateKey);
+  const client = new GitHubClient(jwt);
+  const data = await client.post(`/app/installations/${installationId}/access_tokens`, {});
+  return data.token;
+}
+
 module.exports = {
   GitHubClient,
   getLatestLabeledPR,
@@ -184,4 +202,5 @@ module.exports = {
   deleteTag,
   mergePR,
   exchangeCodeForToken,
+  getInstallationToken,
 };

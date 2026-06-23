@@ -30,12 +30,29 @@ docker run -p 8080:8080 \
 |---|---|---|
 | `SLACK_SIGNING_SECRET` | Yes | Slack App signing secret |
 | `SLACK_BOT_TOKEN` | Yes | Slack Bot User OAuth Token (`xoxb-…`) |
-| `GITHUB_CLIENT_ID` | Yes | GitHub App client ID |
-| `GITHUB_CLIENT_SECRET` | Yes | GitHub App client secret |
 | `DEPLOY_CONFIG_JSON` | One of two | Full deploy config as JSON string |
 | `GCS_BUCKET_NAME` | One of two | GCS bucket storing the config file |
 | `GCS_CONFIG_FILE_PATH` | One of two | Config file path inside the bucket |
 | `PORT` | No | HTTP port (default: `8080`) |
+
+### GitHub Auth Mode
+
+**`oauth` mode** (default) — users authorize via GitHub OAuth before each deploy:
+
+| Variable | Required | Description |
+|---|---|---|
+| `GITHUB_AUTH_MODE` | No | Omit or set to `oauth` |
+| `GITHUB_CLIENT_ID` | Yes | GitHub App client ID |
+| `GITHUB_CLIENT_SECRET` | Yes | GitHub App client secret |
+
+**`app` mode** — bot uses a GitHub App installation token; no per-user OAuth:
+
+| Variable | Required | Description |
+|---|---|---|
+| `GITHUB_AUTH_MODE` | Yes | Set to `app` |
+| `GITHUB_APP_ID` | Yes | GitHub App ID |
+| `GITHUB_PRIVATE_KEY` | Yes | GitHub App private key (full PEM, newlines as `\n`) |
+| `GITHUB_INSTALLATION_ID` | Yes | GitHub App installation ID |
 
 ## Deploy Config Format
 
