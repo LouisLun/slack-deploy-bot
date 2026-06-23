@@ -7,7 +7,7 @@ A Node.js HTTP server that handles Slack Slash Commands and triggers GitHub Acti
 - `/deploy <group> <release title>` — deploys a group of projects in ordered steps, with parallel execution within each step
 - `/hotfix <project> <release title>` — deploys a single project's hotfix branch
 - `/deploy-config list` — lists current deployment configuration
-- GitHub OAuth per-user authorization — tokens are never stored
+- GitHub App per-user OAuth authorization — tokens are never stored
 - Deploy config loaded from GCS or inline JSON (via environment variable)
 - Real-time Slack progress updates throughout deployment, including release title and operator mention
 - `mergeOnly` flag for projects that auto-deploy on PR merge (e.g. Cloudflare Pages) — skips tag, workflow, and release
@@ -30,8 +30,8 @@ docker run -p 8080:8080 \
 |---|---|---|
 | `SLACK_SIGNING_SECRET` | Yes | Slack App signing secret |
 | `SLACK_BOT_TOKEN` | Yes | Slack Bot User OAuth Token (`xoxb-…`) |
-| `GITHUB_CLIENT_ID` | Yes | GitHub OAuth App client ID |
-| `GITHUB_CLIENT_SECRET` | Yes | GitHub OAuth App client secret |
+| `GITHUB_CLIENT_ID` | Yes | GitHub App client ID |
+| `GITHUB_CLIENT_SECRET` | Yes | GitHub App client secret |
 | `DEPLOY_CONFIG_JSON` | One of two | Full deploy config as JSON string |
 | `GCS_BUCKET_NAME` | One of two | GCS bucket storing the config file |
 | `GCS_CONFIG_FILE_PATH` | One of two | Config file path inside the bucket |

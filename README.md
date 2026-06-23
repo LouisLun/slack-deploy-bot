@@ -6,7 +6,7 @@ A Node.js HTTP server deployed on Google Cloud Run that handles Slack Slash Comm
 
 ## Setup Order
 
-> Cloud Run URL is required for both GitHub OAuth App and Slack slash command URLs. Do a first deploy with placeholder secrets to obtain the URL, then complete the remaining setup.
+> Cloud Run URL is required for both GitHub App and Slack slash command URLs. Do a first deploy with placeholder secrets to obtain the URL, then complete the remaining setup.
 
 ```
 Step 1 — GCP Infrastructure
@@ -32,7 +32,7 @@ Step 4 — First Deploy (to obtain Cloud Run URL)
   └─ GitHub → Actions → Deploy to Cloud Run → Run workflow
      Note the URL: https://slack-deploy-bot-xxxx-xx.a.run.app
 
-Step 5 — GitHub OAuth App Setup
+Step 5 — GitHub App Setup
   └─ Set callback URL: https://YOUR_CLOUD_RUN_URL/auth/github/callback
      Obtain: GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET
 
@@ -56,8 +56,8 @@ Step 8 — Redeploy to apply all environment variables
 |---|---|
 | `SLACK_SIGNING_SECRET` | Found in Slack App → Basic Information → App Credentials |
 | `SLACK_BOT_TOKEN` | `xoxb-…` token from Slack App → OAuth & Permissions |
-| `GITHUB_CLIENT_ID` | GitHub OAuth App client ID |
-| `GITHUB_CLIENT_SECRET` | GitHub OAuth App client secret |
+| `GITHUB_CLIENT_ID` | GitHub App client ID |
+| `GITHUB_CLIENT_SECRET` | GitHub App client secret |
 | `GCS_BUCKET_NAME` | GCS bucket that stores the config file |
 | `GCS_CONFIG_FILE_PATH` | Path inside the bucket, e.g. `deploy-config.json` |
 | `PORT` | (optional) defaults to `8080` |
@@ -212,8 +212,8 @@ Configure these in **GitHub repo → Settings → Secrets and variables → Acti
 | `DEPLOY_CONFIG_JSON` | (optional) Full deploy config JSON string — overrides GCS when set |
 | `SLACK_SIGNING_SECRET` | Slack App signing secret |
 | `SLACK_BOT_TOKEN` | Slack Bot User OAuth Token (`xoxb-…`) |
-| `GITHUB_CLIENT_ID` | GitHub OAuth App client ID |
-| `GITHUB_CLIENT_SECRET` | GitHub OAuth App client secret |
+| `GITHUB_CLIENT_ID` | GitHub App client ID |
+| `GITHUB_CLIENT_SECRET` | GitHub App client secret |
 
 ### Variables (vars)
 
@@ -358,23 +358,26 @@ GitHub access is obtained per-user via OAuth (token is never stored).
 
 ---
 
-## GitHub OAuth App Setup
+## GitHub App Setup
 
-1. Go to **GitHub → Settings → Developer settings → OAuth Apps → New OAuth App**.
+1. Go to **GitHub → Settings → Developer settings → GitHub Apps → New GitHub App**.
 2. Fill in:
-   - **Application name**: `Slack Deploy Bot`
+   - **GitHub App name**: `Slack Deploy Bot`
    - **Homepage URL**: your Cloud Run service URL
-   - **Authorization callback URL**: `https://YOUR_CLOUD_RUN_URL/auth/github/callback`
-3. Click **Register application**.
-4. Copy **Client ID** → `GITHUB_CLIENT_ID`.
-5. Generate a **Client Secret** → `GITHUB_CLIENT_SECRET`.
+   - **Callback URL**: `https://YOUR_CLOUD_RUN_URL/auth/github/callback`
+   - **Webhook → Active**: uncheck
+   - **Where can this GitHub App be installed?**: Only on this account
+3. Set **Repository permissions**:
+   - Actions: Read & Write
+   - Contents: Read & Write
+   - Metadata: Read (mandatory)
+   - Pull requests: Read & Write
+4. Click **Create GitHub App**.
+5. Copy **Client ID** → `GITHUB_CLIENT_ID`.
+6. Click **Generate a new client secret** → `GITHUB_CLIENT_SECRET`.
+7. Go to **Install App** → Install on your account/org → select only the repos used in your deploy config.
 
-### Required GitHub Scope
-
-The bot requests the `repo` scope, which covers:
-- Reading pull requests and releases
-- Triggering `workflow_dispatch`
-- Creating releases
+> **Why GitHub App instead of OAuth App?** GitHub App permissions are granular — only Actions, Contents, and Pull Requests access is granted. OAuth App's `repo` scope also grants repository settings and collaboration invite management, which this bot does not need.
 
 ---
 
