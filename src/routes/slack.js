@@ -9,7 +9,6 @@ router.use(verifySlack);
 function buildOAuthUrl(stateKey) {
   const params = new URLSearchParams({
     client_id: process.env.GITHUB_CLIENT_ID,
-    scope: 'repo',
     state: stateKey,
   });
   return `https://github.com/login/oauth/authorize?${params}`;
